@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] — 2026-09-07
+
+### Added
+
+- Pin and Ignore choices are saved in `.python-package-visualizer.json` at the project root so they sync across machines via git (legacy editor storage is migrated once)
+
 ## [3.3.0] — 2026-09-01
 
 ### Added

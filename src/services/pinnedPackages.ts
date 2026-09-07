@@ -5,27 +5,15 @@
  */
 
 import type * as vscode from 'vscode';
-
-const STORE_KEY = 'pythonPackageVisualizer.pinnedPackages';
+import { load, update } from './projectVisualizerConfig.js';
 
 export interface PinnedPackageEntry {
   version: string;
   ignoredLatest: string;
 }
 
-/** workspaceRoot → normalized package name → pin entry */
-type Store = Record<string, Record<string, PinnedPackageEntry>>;
-
 function normalize(name: string): string {
   return name.toLowerCase().replace(/[-_.]+/g, '-');
-}
-
-function readStore(context: vscode.ExtensionContext): Store {
-  return context.workspaceState.get<Store>(STORE_KEY) ?? {};
-}
-
-function rootKey(workspaceRoot: string): string {
-  return workspaceRoot.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase();
 }
 
 /** Pin entries for this workspace (normalized package name → entry). */
@@ -33,7 +21,7 @@ export function getPinnedPackages(
   context: vscode.ExtensionContext,
   workspaceRoot: string
 ): Map<string, PinnedPackageEntry> {
-  const entries = readStore(context)[rootKey(workspaceRoot)] ?? {};
+  const entries = load(context, workspaceRoot).pins;
   return new Map(Object.entries(entries));
 }
 
@@ -42,7 +30,7 @@ export function getPinnedVersion(
   workspaceRoot: string,
   packageName: string
 ): string | undefined {
-  return readStore(context)[rootKey(workspaceRoot)]?.[normalize(packageName)]?.version;
+  return load(context, workspaceRoot).pins[normalize(packageName)]?.version;
 }
 
 export async function pinPackage(
@@ -54,15 +42,12 @@ export async function pinPackage(
   if (!entry.version) {
     return;
   }
-  const store = readStore(context);
-  const key = rootKey(workspaceRoot);
-  const workspaceEntries = { ...(store[key] ?? {}) };
-  workspaceEntries[normalize(packageName)] = {
-    version: entry.version,
-    ignoredLatest: entry.ignoredLatest ?? '',
-  };
-  store[key] = workspaceEntries;
-  await context.workspaceState.update(STORE_KEY, store);
+  await update(context, workspaceRoot, data => {
+    data.pins[normalize(packageName)] = {
+      version: entry.version,
+      ignoredLatest: entry.ignoredLatest ?? '',
+    };
+  });
 }
 
 export async function unpinPackage(
@@ -70,14 +55,7 @@ export async function unpinPackage(
   workspaceRoot: string,
   packageName: string
 ): Promise<void> {
-  const store = readStore(context);
-  const key = rootKey(workspaceRoot);
-  const workspaceEntries = { ...(store[key] ?? {}) };
-  delete workspaceEntries[normalize(packageName)];
-  if (Object.keys(workspaceEntries).length === 0) {
-    delete store[key];
-  } else {
-    store[key] = workspaceEntries;
-  }
-  await context.workspaceState.update(STORE_KEY, store);
+  await update(context, workspaceRoot, data => {
+    delete data.pins[normalize(packageName)];
+  });
 }

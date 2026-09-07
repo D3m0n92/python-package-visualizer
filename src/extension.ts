@@ -1,8 +1,15 @@
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { Logger } from './utils/logger.js';
 import { PackageScanner } from './modules/packageScanner.js';
 import { VersionChecker } from './services/versionChecker.js';
 import { VersionHistoryCache } from './services/versionHistoryCache.js';
+import {
+  CONFIG_FILENAME,
+  invalidateCache,
+  isWriteInFlight,
+  migrateFromWorkspaceState,
+} from './services/projectVisualizerConfig.js';
 import { WebviewPanel } from './ui/webviewPanel.js';
 import { SidebarProvider } from './ui/sidebarProvider.js';
 import { StatusBarManager } from './ui/statusBarManager.js';
@@ -63,6 +70,36 @@ export function activate(context: vscode.ExtensionContext): void {
     const hoverProvider = new ImportHoverProvider(checker, importScanner, scanner, context);
 
     controller.setImportCodeLensRefresh(() => codeLensProvider.refresh());
+
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      void migrateFromWorkspaceState(context, folder.uri.fsPath).catch(err => {
+        logger.warn(`Pin/Ignore config migrate failed: ${String(err)}`);
+      });
+    }
+
+    const configWatcher = vscode.workspace.createFileSystemWatcher(`**/${CONFIG_FILENAME}`);
+    const onProjectConfigFileEvent = (uri: vscode.Uri): void => {
+      const root = path.dirname(uri.fsPath);
+      if (isWriteInFlight(root)) {
+        return;
+      }
+      invalidateCache(root);
+      codeLensProvider.refresh();
+      void controller.refreshIfOpen();
+    };
+    context.subscriptions.push(
+      configWatcher,
+      configWatcher.onDidCreate(onProjectConfigFileEvent),
+      configWatcher.onDidChange(onProjectConfigFileEvent),
+      configWatcher.onDidDelete(onProjectConfigFileEvent),
+      vscode.workspace.onDidChangeWorkspaceFolders(e => {
+        for (const added of e.added) {
+          void migrateFromWorkspaceState(context, added.uri.fsPath).catch(err => {
+            logger.warn(`Pin/Ignore config migrate failed: ${String(err)}`);
+          });
+        }
+      })
+    );
 
     context.subscriptions.push(
       vscode.languages.registerCodeLensProvider(

@@ -1,4 +1,8 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   getIgnoredUpdates,
   ignorePackageUpdate,
@@ -11,28 +15,43 @@ import {
   getActionableUpdates,
 } from '../../src/commands/handlers/visualizer/scanHelpers.js';
 import type { ScannedPackage } from '../../src/modules/packageScanner.js';
+import {
+  CONFIG_FILENAME,
+  resetProjectVisualizerConfigForTests,
+} from '../../src/services/projectVisualizerConfig.js';
 
 suite('ignoredUpdates', () => {
-  const workspaceRoot = 'C:/fake/workspace';
-  const stubContext = {
-    workspaceState: {
-      _data: {} as Record<string, unknown>,
-      get<T>(key: string): T | undefined {
-        return this._data[key] as T | undefined;
+  function makeContext(): vscode.ExtensionContext {
+    return {
+      workspaceState: {
+        _data: {} as Record<string, unknown>,
+        get<T>(key: string): T | undefined {
+          return this._data[key] as T | undefined;
+        },
+        async update(key: string, value: unknown): Promise<void> {
+          this._data[key] = value;
+        },
       },
-      async update(key: string, value: unknown): Promise<void> {
-        this._data[key] = value;
-      },
-    },
-  } as unknown as import('vscode').ExtensionContext;
+    } as unknown as vscode.ExtensionContext;
+  }
 
   test('ignore and unignore persist per workspace', async () => {
-    await ignorePackageUpdate(stubContext, workspaceRoot, 'Requests', '2.32.0');
-    const map = getIgnoredUpdates(stubContext, workspaceRoot);
-    assert.strictEqual(map.get('requests'), '2.32.0');
+    resetProjectVisualizerConfigForTests();
+    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ppv-ignore-'));
+    const stubContext = makeContext();
+    try {
+      await ignorePackageUpdate(stubContext, workspaceRoot, 'Requests', '2.32.0');
+      const map = getIgnoredUpdates(stubContext, workspaceRoot);
+      assert.strictEqual(map.get('requests'), '2.32.0');
+      assert.ok(fs.existsSync(path.join(workspaceRoot, CONFIG_FILENAME)));
 
-    await unignorePackageUpdate(stubContext, workspaceRoot, 'requests');
-    assert.strictEqual(getIgnoredUpdates(stubContext, workspaceRoot).get('requests'), undefined);
+      await unignorePackageUpdate(stubContext, workspaceRoot, 'requests');
+      assert.strictEqual(getIgnoredUpdates(stubContext, workspaceRoot).get('requests'), undefined);
+      assert.ok(!fs.existsSync(path.join(workspaceRoot, CONFIG_FILENAME)));
+    } finally {
+      resetProjectVisualizerConfigForTests();
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
   });
 
   test('isUpdateSuppressedByIgnore respects version ordering', () => {

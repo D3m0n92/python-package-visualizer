@@ -1,16 +1,24 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as vscode from 'vscode';
 import {
   getPinnedPackages,
   getPinnedVersion,
   pinPackage,
   unpinPackage,
 } from '../../src/services/pinnedPackages.js';
+import {
+  CONFIG_FILENAME,
+  resetProjectVisualizerConfigForTests,
+} from '../../src/services/projectVisualizerConfig.js';
 
 suite('pinnedPackages', () => {
-  const workspaceRoot = 'C:/fake/workspace';
-  const otherRoot = 'C:/other/workspace';
+  let workspaceRoot: string;
+  let otherRoot: string;
 
-  function makeContext(): import('vscode').ExtensionContext {
+  function makeContext(): vscode.ExtensionContext {
     return {
       workspaceState: {
         _data: {} as Record<string, unknown>,
@@ -21,8 +29,20 @@ suite('pinnedPackages', () => {
           this._data[key] = value;
         },
       },
-    } as unknown as import('vscode').ExtensionContext;
+    } as unknown as vscode.ExtensionContext;
   }
+
+  setup(() => {
+    resetProjectVisualizerConfigForTests();
+    workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ppv-pins-a-'));
+    otherRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ppv-pins-b-'));
+  });
+
+  teardown(() => {
+    resetProjectVisualizerConfigForTests();
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    fs.rmSync(otherRoot, { recursive: true, force: true });
+  });
 
   test('pin and unpin persist per workspace with PEP 503 names', async () => {
     const ctx = makeContext();
@@ -31,9 +51,12 @@ suite('pinnedPackages', () => {
     assert.strictEqual(getPinnedVersion(ctx, workspaceRoot, 'requests'), '2.31.0');
     assert.strictEqual(getPinnedPackages(ctx, workspaceRoot).get('requests')?.ignoredLatest, '2.32.0');
     assert.strictEqual(getPinnedVersion(ctx, otherRoot, 'requests'), undefined);
+    assert.ok(fs.existsSync(path.join(workspaceRoot, CONFIG_FILENAME)));
+    assert.ok(!fs.existsSync(path.join(otherRoot, CONFIG_FILENAME)));
 
     await unpinPackage(ctx, workspaceRoot, 'requests');
     assert.strictEqual(getPinnedVersion(ctx, workspaceRoot, 'requests'), undefined);
+    assert.ok(!fs.existsSync(path.join(workspaceRoot, CONFIG_FILENAME)));
   });
 
   test('pin overwrites previous entry for the same package', async () => {
@@ -57,5 +80,13 @@ suite('pinnedPackages', () => {
     const ctx = makeContext();
     await unpinPackage(ctx, workspaceRoot, 'numpy');
     assert.strictEqual(getPinnedPackages(ctx, workspaceRoot).size, 0);
+    assert.ok(!fs.existsSync(path.join(workspaceRoot, CONFIG_FILENAME)));
+  });
+
+  test('empty version does not create a config file', async () => {
+    const ctx = makeContext();
+    await pinPackage(ctx, workspaceRoot, 'requests', { version: '', ignoredLatest: '2.32.0' });
+    assert.strictEqual(getPinnedPackages(ctx, workspaceRoot).size, 0);
+    assert.ok(!fs.existsSync(path.join(workspaceRoot, CONFIG_FILENAME)));
   });
 });

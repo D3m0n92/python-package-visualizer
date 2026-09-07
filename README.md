@@ -4,7 +4,7 @@
 
 **Community-maintained fork — dependency manager for Python projects in VS Code & Cursor**
 
-![Version](https://img.shields.io/badge/version-3.3.0-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-3.3.1-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![VS Code](https://img.shields.io/badge/vscode-%5E1.105.0-007ACC?style=flat-square&logo=visualstudiocode)
 ![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?style=flat-square&logo=python)
@@ -86,6 +86,9 @@ Pin, Ignore, and Align are different tools:
 | Env / file | Installs the version you pick and writes `==` | Leaves env and file unchanged | Rewrites an existing exact pin to match *what is already installed* |
 | Updates | Hidden until PyPI is newer than at pin time | Hidden until PyPI publishes something newer than the ignored latest | Not hidden |
 | UI | Tag **Pinned** until Unpin or a successful Update | Status **update-ignored** until expiry | Tag **out of sync** when `==` ≠ installed |
+| Sync | Written to `.python-package-visualizer.json` (commit this file) | Same project file | Dependency files only |
+
+Pin and Ignore metadata live in **`.python-package-visualizer.json`** at the project root (one file per folder in a multi-root workspace). Commit it so the Pinned tag and update holds match on every machine. Exact `==` constraints still belong in `requirements.txt` / `pyproject.toml` as before.
 
 ### 🧹 Unused Packages & Cursor AI Review
 
@@ -228,7 +231,11 @@ Inside the Package Visualizer panel:
 
 > 📋 **Full release history:** [CHANGELOG.md](CHANGELOG.md)
 
-## 🎯 What's New in v3.3.0
+## 🎯 What's New in v3.3.1
+
+- 📁 **Project Pin/Ignore file** — `.python-package-visualizer.json` at the project root syncs Pinned tags and update holds across machines via git (one-time migrate from editor storage)
+
+### v3.3.0
 
 - 📌 **Pin a chosen version** — from the list or detail panel, pick a known PyPI version; the extension installs it if needed, writes `==` in the dependency file, and hides updates until PyPI publishes something newer than at pin time. **Ignore** stays a separate action; **Unpin** lifts the hold only
 - 🔧 **Bulk Update** no longer rewrites exact pins of packages you did not select
@@ -295,10 +302,10 @@ You can also pick a requirements file manually from the dashboard or the in-pane
 
 ```bash
 # VS Code
-code --install-extension python-package-visualizer-community-3.3.0.vsix
+code --install-extension python-package-visualizer-community-3.3.1.vsix
 
 # Cursor
-cursor --install-extension python-package-visualizer-community-3.3.0.vsix --force
+cursor --install-extension python-package-visualizer-community-3.3.1.vsix --force
 ```
 
 Or run the full pipeline from the project root:
@@ -415,6 +422,7 @@ python-package-visualizer/
 │   ├── services/
 │   │   ├── versionChecker.ts     # PyPI API queries
 │   │   ├── versionHistoryCache.ts # Local JSON history store
+│   │   ├── projectVisualizerConfig.ts # `.python-package-visualizer.json` Pin/Ignore store
 │   │   ├── pinnedPackages.ts     # User-chosen version pins (tag + hold metadata)
 │   │   ├── ignoredUpdates.ts     # Dismissed PyPI latest versions
 │   │   ├── venvHealthChecker.ts  # Environment tab diagnostics

@@ -27,11 +27,25 @@ module.exports = {
           : defaultValue
       ),
     }),
+    createFileSystemWatcher: () => ({
+      onDidCreate: () => ({ dispose: () => undefined }),
+      onDidChange: () => ({ dispose: () => undefined }),
+      onDidDelete: () => ({ dispose: () => undefined }),
+      dispose: () => undefined,
+    }),
+    onDidChangeWorkspaceFolders: () => ({ dispose: () => undefined }),
   },
   window: {
     get activeTextEditor() {
       return activeTextEditor;
     },
+    showWarningMessage: () => Promise.resolve(undefined),
+    showErrorMessage: () => Promise.resolve(undefined),
+    createOutputChannel: () => ({
+      appendLine: () => undefined,
+      show: () => undefined,
+      dispose: () => undefined,
+    }),
   },
   extensions: {
     getExtension: () => undefined,

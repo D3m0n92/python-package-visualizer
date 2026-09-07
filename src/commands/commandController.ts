@@ -199,6 +199,11 @@ export class CommandController {
     await this.visualizerHandler.triggerAutoCheck();
   }
 
+  /** Refresh the panel/sidebar if either is visible (e.g. project config file changed). */
+  async refreshIfOpen(): Promise<void> {
+    await this.refreshVisualizer();
+  }
+
   // --- Wrapper Delegates ---
 
   async updatePackage(packageName: string): Promise<void> {
