@@ -246,12 +246,12 @@ window.setupDomListeners = function () {
     const packagesToSync = [...window.selectedPackages]
       .map(name => {
         const pkg = window.allPackages.find(p => p.name === name);
-        if (!pkg?.specifiedVersion || !pkg.installedVersion) return null;
-        if (!window.hasDrift(pkg.specifiedVersion, pkg.installedVersion)) return null;
+        if (!pkg || !window.packageHasDrift?.(pkg)) return null;
         return {
           name: pkg.name,
           source: pkg.source || '',
           specifiedVersion: pkg.specifiedVersion,
+          pinnedVersion: pkg.pinnedVersion || '',
         };
       })
       .filter(Boolean);

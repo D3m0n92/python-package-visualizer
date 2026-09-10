@@ -76,7 +76,7 @@ export async function runCheckUpdates(ctx: VisualizerUpdateContext): Promise<voi
           }))
         );
 
-        applyDriftStatus(scanned, checkResults);
+        applyDriftStatus(scanned, checkResults, ctx.packageEnrichment(root).pinnedPackages);
         ctx.updateStatusBar(checkResults, scanned);
 
         const mergedImportedModules = new Set<string>();
@@ -193,10 +193,9 @@ export async function runTriggerAutoCheck(ctx: VisualizerUpdateContext): Promise
       scanned.map(p => ({ name: p.name, installedVersion: p.installedVersion }))
     );
 
-    applyDriftStatus(scanned, checkResults);
-    ctx.updateStatusBar(checkResults, scanned);
-
     const enrich = ctx.packageEnrichment(root);
+    applyDriftStatus(scanned, checkResults, enrich.pinnedPackages);
+    ctx.updateStatusBar(checkResults, scanned);
     const outdated = getActionableUpdates(scanned, checkResults, enrich.ignoredUpdates);
 
     if (outdated.length > 0) {

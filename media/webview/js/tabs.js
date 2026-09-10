@@ -40,7 +40,7 @@ window.updateVulnBanner = function (packages) {
 
 /**
  * Computes and triggers alert-banners for requirements sync drift.
- * Detects misalignment between actual installed versions and requirements.txt declarations.
+ * Detects misalignment vs a user pin or an exact == in the requirements file.
  * 
  * @param {Array<object>} packages - The raw package list.
  * @returns {void}
@@ -72,7 +72,7 @@ window.updateStats = function (packages) {
   const drifted  = packages.filter(p =>
     p.hasVersionDrift ||
     p.status === 'drift' ||
-    (p.specifiedVersion && p.installedVersion && window.hasDrift?.(p.specifiedVersion, p.installedVersion))
+    window.packageHasDrift?.(p)
   ).length;
   const vulnPkgs = packages.filter(p => p.vulnerabilities && p.vulnerabilities.length > 0).length;
 

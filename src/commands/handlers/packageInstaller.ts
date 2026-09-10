@@ -258,12 +258,14 @@ export class PackageInstaller {
   async pinPackageToVersion(
     packageName: string,
     version: string,
-    sourceFile: string
+    sourceFile: string,
+    opts?: { notifyAs?: 'pin' | 'align' }
   ): Promise<boolean> {
     const root = this.getWorkspaceRoot();
     if (!root || !packageName.trim() || !version.trim()) {
       return false;
     }
+    const notifyAs = opts?.notifyAs ?? 'pin';
 
     const scannedBefore = (await this.scanner.scanWorkspace(root)).packages;
     const existing = scannedBefore.find(
@@ -286,8 +288,9 @@ export class PackageInstaller {
         this.history.recordVersion(root, packageName, version, 'pip-install', installTime);
       } catch (err) {
         this.logger.error(`Pin install failed for ${packageName}: ${String(err)}`);
+        const failVerb = notifyAs === 'align' ? 'align' : 'pin';
         void vscode.window.showErrorMessage(
-          `Python Packages: Failed to pin ${packageName} to ${version}. See Output panel for details.`
+          `Python Packages: Failed to ${failVerb} ${packageName} to ${version}. See Output panel for details.`
         );
         this.logger.show();
         return false;
@@ -305,6 +308,15 @@ export class PackageInstaller {
       this.logger.warn(`Pin file sync for ${packageName}: ${syncResult.outcome}`);
       void vscode.window.showWarningMessage(
         `Python Packages: ${packageName} is at ${version} but the dependency file could not be updated (${syncResult.outcome}).`
+      );
+    } else if (notifyAs === 'align') {
+      const lang = vscode.workspace
+        .getConfiguration('pythonPackageVisualizer')
+        .get<string>('language', 'en');
+      void vscode.window.showInformationMessage(
+        lang === 'it'
+          ? `Python Packages: ${packageName} allineato a ${version} ✅`
+          : `Python Packages: ${packageName} aligned to ${version} ✅`
       );
     } else {
       void vscode.window.showInformationMessage(

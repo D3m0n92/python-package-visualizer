@@ -98,24 +98,41 @@ window.hasDrift = function (specifiedVersion, installedVersion) {
 };
 
 /**
- * Identifies packages whose exact pin differs from the installed version.
- *
- * @param {Array<object>} packages - List of package objects.
- * @returns {Array<object>} Filtered list of packages with mismatched exact pins.
+ * Drift for a package: user pin vs installed when pinned;
+ * otherwise exact file pin vs installed (same guards as the UI).
+ * @param {object} pkg
+ * @returns {boolean}
  */
-window.computeDrift = function (packages) {
-  return packages.filter(pkg => {
-    if (!pkg.installedVersion || !pkg.specifiedVersion) return false;
-    return window.hasDrift(pkg.specifiedVersion, pkg.installedVersion);
-  });
+window.packageHasDrift = function (pkg) {
+  if (!pkg) return false;
+  const pin = pkg.pinnedVersion && String(pkg.pinnedVersion).trim();
+  if (pin) {
+    if (!pkg.installedVersion) return true;
+    return !window.versionsEquivalent(pin, pkg.installedVersion);
+  }
+  if (!pkg.specifiedVersion || !pkg.installedVersion) return false;
+  return window.hasDrift(pkg.specifiedVersion, pkg.installedVersion);
 };
 
 /**
- * Exact pin version for drift display (req: X vs installed).
+ * Identifies packages with user-pin or exact-file-pin drift.
+ *
+ * @param {Array<object>} packages - List of package objects.
+ * @returns {Array<object>} Filtered list of packages with drift.
+ */
+window.computeDrift = function (packages) {
+  return (packages || []).filter(pkg => window.packageHasDrift(pkg));
+};
+
+/**
+ * Expected version for drift display (user pin, else exact file pin).
  *
  * @param {object} pkg - The package object.
- * @returns {string} The exact pin version or specified version placeholder.
+ * @returns {string} The expected version or specified version placeholder.
  */
 window.getDriftReqVersion = function (pkg) {
-  return window.extractExactPinnedVersion(pkg.specifiedVersion) || pkg.specifiedVersion || '?';
+  if (pkg?.pinnedVersion && String(pkg.pinnedVersion).trim()) {
+    return pkg.pinnedVersion;
+  }
+  return window.extractExactPinnedVersion(pkg?.specifiedVersion) || pkg?.specifiedVersion || '?';
 };

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { Logger } from '../../utils/logger.js';
-import { hasDrift } from '../../utils/version.js';
+import { packageHasDrift } from '../../utils/version.js';
+import { getPinnedVersion } from '../../services/pinnedPackages.js';
 import { RequirementsSync, SyncResult } from '../../modules/requirementsSync.js';
 import { RequirementsGenerator } from '../../modules/requirementsGenerator.js';
 import { ScannedPackage } from '../../modules/packageScanner.js';
@@ -84,7 +85,8 @@ export class RequirementsHandler {
 
   /**
    * Aligns requirement files to installed versions for multiple packages (bulk Align).
-   * Only syncs packages whose exact pin (`==`) diverges from the installed version.
+   * Only syncs unpinned packages whose exact pin (`==`) diverges from installed;
+   * pinned packages are routed to pin restore before this handler.
    */
   async bulkSyncRequirementsToInstalled(
     packages: Array<{ name: string; source: string }>,
@@ -116,7 +118,13 @@ export class RequirementsHandler {
         }
 
         // Verify drift before syncing — skip packages already aligned
-        if (!scanned.specifiedVersion || !hasDrift(scanned.specifiedVersion, installedVersion)) {
+        if (
+          !packageHasDrift(
+            scanned.specifiedVersion,
+            installedVersion,
+            getPinnedVersion(this.context, root, p.name)
+          )
+        ) {
           continue;
         }
 

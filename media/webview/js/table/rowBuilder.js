@@ -20,12 +20,10 @@ window.buildTableRowHtml = function (pkg, helpers) {
   const isMajor = isMajorJump(pkg.installedVersion, pkg.latestVersion);
   const isLocked = window.safeMode && isMajor;
 
-  let hasDrift = false;
-  let reqVersion = '';
-  if (pkg.specifiedVersion && pkg.installedVersion && window.hasDrift(pkg.specifiedVersion, pkg.installedVersion)) {
-    hasDrift = true;
-    reqVersion = window.extractExactPinnedVersion(pkg.specifiedVersion) || pkg.specifiedVersion;
-  }
+  let hasDrift = Boolean(window.packageHasDrift?.(pkg));
+  let reqVersion = hasDrift
+    ? (window.getDriftReqVersion?.(pkg) || pkg.specifiedVersion || '')
+    : '';
 
   let actionBtnHtml = '';
   if (canUpdate) {
@@ -66,7 +64,10 @@ window.buildTableRowHtml = function (pkg, helpers) {
     tagsHtml += ` <span class="inline-tag unused" title="${window.t('tag.unusedTitle').replace('{n}', conf)}">${window.t('tag.unused')}</span>`;
   }
   if (hasDrift) {
-    tagsHtml += ` <span class="inline-tag drift" title="${window.t('tag.driftTitle')}">${window.t('tag.drift')} (${reqVersion})</span>`;
+    const driftTitle = pkg.pinnedVersion
+      ? window.t('tag.driftTitlePinned')
+      : window.t('tag.driftTitle');
+    tagsHtml += ` <span class="inline-tag drift" title="${driftTitle}">${window.t('tag.drift')} (${esc(reqVersion)})</span>`;
   }
   if (pkg.pinnedVersion) {
     tagsHtml += ` <span class="inline-tag pinned" title="${window.t('tag.pinnedTitle')}">${window.t('tag.pinned').replace('{v}', esc(pkg.pinnedVersion))}</span>`;
@@ -85,7 +86,10 @@ window.buildTableRowHtml = function (pkg, helpers) {
 
   let syncBtnHtml = '';
   if (hasDrift) {
-    syncBtnHtml = `<button class="action-btn sync sync-btn" data-name="${esc(pkg.name)}" data-source="${esc(pkg.source || '')}" title="${window.t('btn.syncTitle')}">${window.t('btn.sync')}</button> `;
+    const syncTitle = pkg.pinnedVersion
+      ? window.t('btn.syncTitlePinned')
+      : window.t('btn.syncTitle');
+    syncBtnHtml = `<button class="action-btn sync sync-btn" data-name="${esc(pkg.name)}" data-source="${esc(pkg.source || '')}" title="${syncTitle}">${window.t('btn.sync')}</button> `;
   }
 
   const hasPinVersions = Boolean(pkg.installedVersion);

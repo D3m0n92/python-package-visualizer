@@ -109,7 +109,7 @@ export interface PackageDisplayData {
   isUsed: boolean;
   /** True when the user manually confirmed this package as used. */
   manuallyMarkedUsed?: boolean;
-  /** Exact-pin drift vs installed, independent of update-available status. */
+  /** User-pin or exact-file-pin drift vs installed, independent of update-available status. */
   hasVersionDrift?: boolean;
   vulnerabilities: VulnerabilityInfo[];
   releaseDate: string;

@@ -38,6 +38,7 @@ import { rollbackPackage as rollbackPackageFn } from './commandController/incomp
 import type { ScannedPackage } from '../modules/packageScanner.js';
 import type { VersionCheckResult } from '../services/versionChecker.js';
 import { getConflictInstallSpec } from '../utils/conflictFix.js';
+import { getPinnedVersion } from '../services/pinnedPackages.js';
 
 /**
  * Orchestrates extension commands, webview interactions, and background tasks.
@@ -283,11 +284,55 @@ export class CommandController {
   }
 
   async syncRequirementsToInstalled(packageName: string, sourceFile: string): Promise<void> {
+    const root = this.getActiveProjectRoot();
+    const pinnedVersion = root
+      ? getPinnedVersion(this.context, root, packageName)?.trim()
+      : undefined;
+    if (pinnedVersion) {
+      await this.installerHandler.pinPackageToVersion(
+        packageName,
+        pinnedVersion,
+        sourceFile,
+        { notifyAs: 'align' }
+      );
+      await this.refreshVisualizer();
+      return;
+    }
     await this.requirementsHandler.syncRequirementsToInstalled(packageName, sourceFile, this.lastPackages);
   }
 
   async bulkSyncRequirementsToInstalled(packages: Array<{ name: string; source: string }>): Promise<void> {
-    await this.requirementsHandler.bulkSyncRequirementsToInstalled(packages, this.lastPackages);
+    const root = this.getActiveProjectRoot();
+    if (!root) {
+      await this.requirementsHandler.bulkSyncRequirementsToInstalled(packages, this.lastPackages);
+      return;
+    }
+
+    const pinned: Array<{ name: string; source: string; version: string }> = [];
+    const unpinned: Array<{ name: string; source: string }> = [];
+    for (const p of packages) {
+      const version = getPinnedVersion(this.context, root, p.name)?.trim();
+      if (version) {
+        pinned.push({ ...p, version });
+      } else {
+        unpinned.push(p);
+      }
+    }
+
+    for (const p of pinned) {
+      await this.installerHandler.pinPackageToVersion(
+        p.name,
+        p.version,
+        p.source,
+        { notifyAs: 'align' }
+      );
+    }
+
+    if (unpinned.length > 0) {
+      await this.requirementsHandler.bulkSyncRequirementsToInstalled(unpinned, this.lastPackages);
+    } else if (pinned.length > 0) {
+      await this.refreshVisualizer();
+    }
   }
 
   async removeUnusedPackagesWithSnapshot(

@@ -87,7 +87,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const ok       = packages.filter(p => p.status === 'up-to-date').length;
     const updates  = packages.filter(p => p.status === 'update-available' && !p.updateBlockedByConflict).length;
     const vulnerable = packages.filter(p => p.vulnerabilities && p.vulnerabilities.length > 0).length;
-    const drifted = packages.filter(p => p.status === 'drift').length;
+    const drifted = packages.filter(p => p.hasVersionDrift || p.status === 'drift').length;
     void this.view.webview.postMessage({ type: 'sidebarStats', ok, updates, vulnerable, drifted });
   }
   sendProgress(_message: string): void {}

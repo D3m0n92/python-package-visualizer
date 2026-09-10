@@ -4,9 +4,11 @@
  * preventing duplication across handlers.
  *
  * Model:
- * - Drift = exact pin (`==` / `===`) in the file differs from the installed version
- * - Align/Sync = rewrite the file to `==installed` (may tighten a range; warn in UI)
- * - Flexible constraints (`>=`, `~=`, multi-clause ranges) are not drift
+ * - User pin (`pinnedVersion`) = drift when local installed is missing or not equivalent
+ * - File drift = exact pin (`==` / `===`) in the file differs from the installed version
+ * - Align/Sync unpinned = rewrite the file to `==installed` (may tighten a range; warn in UI)
+ * - Align pinned = restore env + file to the user pin
+ * - Flexible constraints (`>=`, `~=`, multi-clause ranges) are not file drift
  * - Post-update auto-sync only rewrites exact pins (never silent range→==)
  */
 
@@ -116,6 +118,27 @@ export function wouldTightenToExactPin(specifiedVersion: string): boolean {
 export function hasDrift(specifiedVersion: string, installedVersion: string): boolean {
   const pinned = extractExactPinnedVersion(specifiedVersion);
   return pinned !== null && !versionsEquivalent(pinned, installedVersion);
+}
+
+/**
+ * Drift for a scanned package: user pin vs installed when pinned;
+ * otherwise exact file pin vs installed (same guards as the UI).
+ * Empty / whitespace `pinnedVersion` is treated as unpinned.
+ */
+export function packageHasDrift(
+  specifiedVersion: string | undefined,
+  installedVersion: string | undefined,
+  pinnedVersion?: string
+): boolean {
+  const pin = pinnedVersion?.trim();
+  if (pin) {
+    return !installedVersion || !versionsEquivalent(pin, installedVersion);
+  }
+  return Boolean(
+    specifiedVersion &&
+      installedVersion &&
+      hasDrift(specifiedVersion, installedVersion)
+  );
 }
 
 /**

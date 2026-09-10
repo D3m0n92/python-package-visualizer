@@ -132,6 +132,52 @@ suite('displayCompiler', () => {
     const current = displayCurrent.find(p => p.name === 'requests');
     assert.strictEqual(current?.status, 'up-to-date');
     assert.strictEqual(current?.pinnedVersion, '2.31.0');
+    assert.strictEqual(current?.hasVersionDrift, false);
+  });
+
+  test('buildDisplayData sets hasVersionDrift when installed differs from user pin', () => {
+    const pinned = new Map([
+      ['requests', { version: '2.31.0', ignoredLatest: '2.31.0' }],
+    ]);
+    const driftedScan: ScannedPackage[] = [
+      { ...scanned[0], installedVersion: '2.30.0' },
+      scanned[1],
+    ];
+    const upToDateCheck = [
+      { ...checkResults[0], latestVersion: '2.31.0', status: 'up-to-date' as const },
+      checkResults[1],
+    ];
+    const display = buildDisplayData(
+      driftedScan,
+      upToDateCheck,
+      undefined,
+      undefined,
+      undefined,
+      pinned
+    );
+    const requests = display.find(p => p.name === 'requests');
+    assert.strictEqual(requests?.hasVersionDrift, true);
+    assert.strictEqual(requests?.pinnedVersion, '2.31.0');
+    assert.strictEqual(requests?.specifiedVersion, '>=2.0');
+  });
+
+  test('buildDisplayData has no pin drift when installed matches the user pin', () => {
+    const pinned = new Map([
+      ['requests', { version: '2.31.0', ignoredLatest: '2.31.0' }],
+    ]);
+    const upToDateCheck = [
+      { ...checkResults[0], latestVersion: '2.31.0', status: 'up-to-date' as const },
+      checkResults[1],
+    ];
+    const display = buildDisplayData(
+      scanned,
+      upToDateCheck,
+      undefined,
+      undefined,
+      undefined,
+      pinned
+    );
+    assert.strictEqual(display.find(p => p.name === 'requests')?.hasVersionDrift, false);
   });
 
   test('buildDisplayData keeps pinnedVersion after ignore expiry', () => {

@@ -3,16 +3,19 @@
  */
 
 /**
- * Confirm before Align/Sync. Optionally warns when sync would tighten a range to `==`.
+ * Confirm before Align/Sync. Optionally warns when sync would tighten a range to `==`
+ * (unpinned only) or restore a user pin.
  * @param {() => void} onSync
- * @param {Array<{ name?: string, specifiedVersion?: string }>|undefined} packages
+ * @param {Array<{ name?: string, specifiedVersion?: string, pinnedVersion?: string }>|undefined} packages
  */
 window.showSyncConfirmDialog = function (onSync, packages) {
   document.getElementById('sync-confirm-dialog')?.remove();
 
   const t = window.t || (k => k);
   const list = Array.isArray(packages) ? packages : [];
+  const hasPinned = list.some(p => Boolean(p?.pinnedVersion && String(p.pinnedVersion).trim()));
   const tightenCount = list.filter(p =>
+    !(p?.pinnedVersion && String(p.pinnedVersion).trim()) &&
     window.wouldTightenToExactPin?.(p?.specifiedVersion ?? '')
   ).length;
   const rangeWarning = tightenCount > 0
@@ -20,6 +23,12 @@ window.showSyncConfirmDialog = function (onSync, packages) {
         ${t('sync.rangeTightenWarning').replace('{n}', String(tightenCount))}
       </div>`
     : '';
+  const pinRestoreWarning = hasPinned
+    ? `<div style="font-size:12px;color:var(--vscode-editorWarning-foreground,#d29922);margin-bottom:16px;line-height:1.5;padding:8px 10px;border-radius:6px;background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.35);">
+        ${t('sync.pinRestoreWarning')}
+      </div>`
+    : '';
+  const confirmMessage = hasPinned ? t('sync.confirmMessagePinned') : t('sync.confirmMessage');
 
   const dialog = document.createElement('div');
   dialog.id = 'sync-confirm-dialog';
@@ -37,8 +46,9 @@ window.showSyncConfirmDialog = function (onSync, packages) {
         ${t('sync.confirmTitle')}
       </div>
       <div style="font-size:12px;color:var(--vscode-descriptionForeground);margin-bottom:12px;line-height:1.5;">
-        ${t('sync.confirmMessage')}
+        ${confirmMessage}
       </div>
+      ${pinRestoreWarning}
       ${rangeWarning}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button id="sync-dialog-snapshot" style="

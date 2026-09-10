@@ -5,7 +5,7 @@ import type { PackageDisplayData, HistoryDisplayEntry, GraphPackageInfo } from '
 import type { VersionHistoryEntry } from '../../../services/versionHistoryCache.js';
 import type { VersionHistoryCache } from '../../../services/versionHistoryCache.js';
 import { getAlternatives } from '../../../data/alternativesMap.js';
-import { hasDrift } from '../../../utils/version.js';
+import { packageHasDrift } from '../../../utils/version.js';
 import { isUpdateIgnoredForDisplay } from '../../../services/ignoredUpdates.js';
 import type { PinnedPackageEntry } from '../../../services/pinnedPackages.js';
 
@@ -98,10 +98,10 @@ export function buildDisplayData(
       status = 'update-ignored';
     }
 
-    const hasVersionDrift = Boolean(
-      pkg.specifiedVersion &&
-      pkg.installedVersion &&
-      hasDrift(pkg.specifiedVersion, pkg.installedVersion)
+    const hasVersionDrift = packageHasDrift(
+      pkg.specifiedVersion,
+      pkg.installedVersion,
+      pinnedPackages?.get(normName)?.version
     );
 
     let isUsed = true;

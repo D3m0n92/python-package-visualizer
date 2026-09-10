@@ -92,6 +92,7 @@ window.i18n.en = {
   'tag.unusedTitle': 'No matching import found ({n}% confidence)',
   'tag.drift': 'drift',
   'tag.driftTitle': 'Installed version differs from the exact pin (==) in the requirements file',
+  'tag.driftTitlePinned': 'Installed version differs from the pinned version; Align restores env and file to the pin',
   'tag.majorLock': '🔒 Major',
   'tag.majorLockTitle': 'Major version jump — disabled in Safe Mode',
   'tag.pinned': 'Pinned {v}',
@@ -114,6 +115,7 @@ window.i18n.en = {
   'btn.remove': '🗑 Remove',
   'btn.sync': '🔗 Align',
   'btn.syncTitle': 'Rewrite the requirements pin to match the installed version (==)',
+  'btn.syncTitlePinned': 'Restore the pinned version (install if needed and rewrite the file to ==pin)',
   'btn.ignoreUpdate': '⊘ Ignore',
   'btn.ignoreUpdateTitle': 'Hide this PyPI update until a newer version is published',
   'btn.unignoreUpdate': '↩ Unignore',
@@ -128,7 +130,7 @@ window.i18n.en = {
   // Banners
   'banner.vulnMsg': 'package(s) have known security vulnerabilities',
   'banner.vulnAction': 'View affected',
-  'banner.driftMsg': 'package(s) with an exact pin (==) that differs from the installed version',
+  'banner.driftMsg': 'package(s) out of sync (user pin or exact == in the file differs from installed)',
   'banner.driftAction': 'View drift',
   // Bulk bar
   'bulk.selected': 'selected',
@@ -340,7 +342,9 @@ window.i18n.en = {
   // Sync confirmation
   'sync.confirmTitle': 'Create Snapshot?',
   'sync.confirmMessage': 'Would you like to save a snapshot of your current packages before aligning the requirements file to the installed version?',
+  'sync.confirmMessagePinned': 'Would you like to save a snapshot before restoring the pinned version (install + rewrite the file to ==pin)? Mixed selections restore pins and align unpinned packages to the installed version.',
   'sync.rangeTightenWarning': '{n} package(s) use a flexible constraint (range / bare name). Align will rewrite them to an exact pin (==installed).',
+  'sync.pinRestoreWarning': 'Pinned package(s) will be reinstalled at the pinned version; Align will not rewrite the file to the currently installed version.',
   'sync.snapshotFirst': '📸 Snapshot & Align',
   'sync.justSync': '🔗 Just Align',
   'sync.cancel': 'Cancel',

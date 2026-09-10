@@ -28,10 +28,7 @@ window.buildPackageRowMenuItems = function (pkg) {
   const isMajor = window.isMajorJump?.(pkg.installedVersion, pkg.latestVersion) ?? false;
   const isLocked = window.safeMode && isMajor;
 
-  let hasDrift = false;
-  if (pkg.specifiedVersion && pkg.installedVersion && window.hasDrift?.(pkg.specifiedVersion, pkg.installedVersion)) {
-    hasDrift = true;
-  }
+  let hasDrift = Boolean(window.packageHasDrift?.(pkg));
 
   const actionItems = [];
 
@@ -92,7 +89,11 @@ window.runPackageRowMenuAction = function (actionId, pkg) {
       vscode.postMessage({ type: 'installNew', name: pkg.name });
       break;
     case 'sync':
-      const packagesMeta = [{ name: pkg.name, specifiedVersion: pkg.specifiedVersion || '' }];
+      const packagesMeta = [{
+        name: pkg.name,
+        specifiedVersion: pkg.specifiedVersion || '',
+        pinnedVersion: pkg.pinnedVersion || '',
+      }];
       window.showSyncConfirmDialog?.(() => {
         vscode.postMessage({
           type: 'syncRequirementsToInstalled',

@@ -129,7 +129,7 @@ export async function runWorkspaceScan(ctx: VisualizerScanContext): Promise<void
       scanned.map(p => ({ name: p.name, installedVersion: p.installedVersion }))
     );
 
-    applyDriftStatus(scanned, checkResults);
+    applyDriftStatus(scanned, checkResults, getPinnedPackages(ctx.context, root));
 
     // Fetch weekly downloads in batches (non-blocking) to prevent PyPI Stats API rate-limiting or timing out
     const downloadsMap = new Map<string, number>();

@@ -111,7 +111,11 @@ window.bindTableRowEvents = function (tbody) {
       if (name) {
         const pkg = window.allPackages.find(p => p.name === name);
         const packagesMeta = pkg
-          ? [{ name: pkg.name, specifiedVersion: pkg.specifiedVersion || '' }]
+          ? [{
+              name: pkg.name,
+              specifiedVersion: pkg.specifiedVersion || '',
+              pinnedVersion: pkg.pinnedVersion || '',
+            }]
           : [];
         window.showSyncConfirmDialog(() => {
           btn.disabled = true;

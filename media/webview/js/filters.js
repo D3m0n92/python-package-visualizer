@@ -73,7 +73,7 @@ window.getFiltered = function () {
       pkgs = pkgs.filter(p =>
         p.hasVersionDrift ||
         p.status === 'drift' ||
-        (p.specifiedVersion && p.installedVersion && window.hasDrift?.(p.specifiedVersion, p.installedVersion))
+        window.packageHasDrift?.(p)
       );
     } else if (card === 'update-ignored') {
       pkgs = pkgs.filter(p => p.status === 'update-ignored');
@@ -88,7 +88,7 @@ window.getFiltered = function () {
       pkgs = pkgs.filter(p =>
         p.hasVersionDrift ||
         p.status === 'drift' ||
-        (p.specifiedVersion && p.installedVersion && window.hasDrift?.(p.specifiedVersion, p.installedVersion))
+        window.packageHasDrift?.(p)
       );
     } else if (status === 'update-ignored') {
       pkgs = pkgs.filter(p => p.status === 'update-ignored');

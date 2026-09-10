@@ -92,6 +92,7 @@ window.i18n.it = {
   'tag.unusedTitle': 'Nessun import corrispondente trovato (sicurezza {n}%)',
   'tag.drift': 'disallineato',
   'tag.driftTitle': 'La versione installata differisce dal pin esatto (==) nel file requirements',
+  'tag.driftTitlePinned': 'La versione installata differisce dalla versione fissata; Allinea ripristina ambiente e file al pin',
   'tag.majorLock': '🔒 Major',
   'tag.majorLockTitle': 'Salto di versione major — disabilitato in Modalità Sicura',
   'tag.pinned': 'Fissato {v}',
@@ -114,6 +115,7 @@ window.i18n.it = {
   'btn.remove': '🗑 Rimuovi',
   'btn.sync': '🔗 Allinea',
   'btn.syncTitle': 'Riscrivi il pin nel requirements alla versione installata (==)',
+  'btn.syncTitlePinned': 'Ripristina la versione fissata (installa se serve e riscrivi il file a ==pin)',
   'btn.ignoreUpdate': '⊘ Ignora',
   'btn.ignoreUpdateTitle': 'Nascondi questo aggiornamento PyPI fino a una versione più recente',
   'btn.unignoreUpdate': '↩ Ripristina',
@@ -128,7 +130,7 @@ window.i18n.it = {
   // Banners
   'banner.vulnMsg': 'pacchetto/i con vulnerabilità di sicurezza note',
   'banner.vulnAction': 'Vedi interessati',
-  'banner.driftMsg': 'pacchetto/i con pin esatto (==) diverso dalla versione installata',
+  'banner.driftMsg': 'pacchetto/i non allineati (pin utente o == esatto nel file diverso dall\'installato)',
   'banner.driftAction': 'Vedi disallineamenti',
   // Bulk bar
   'bulk.selected': 'selezionati',
@@ -340,7 +342,9 @@ window.i18n.it = {
   // Conferma allineamento
   'sync.confirmTitle': 'Creare Snapshot?',
   'sync.confirmMessage': 'Vuoi salvare uno snapshot dei pacchetti attuali prima di allineare il file requirements alla versione installata?',
+  'sync.confirmMessagePinned': 'Vuoi salvare uno snapshot prima di ripristinare la versione fissata (installazione + riscrittura del file a ==pin)? Nelle selezioni miste i fissati tornano al pin, gli altri si allineano alla versione installata.',
   'sync.rangeTightenWarning': '{n} pacchetto/i usano un vincolo flessibile (range / nome senza versione). Allinea li riscriverà come pin esatto (==installata).',
+  'sync.pinRestoreWarning': 'I pacchetti fissati verranno reinstallati alla versione del pin; Allinea non copierà la versione attualmente installata nel file.',
   'sync.snapshotFirst': '📸 Snapshot e Allinea',
   'sync.justSync': '🔗 Solo Allinea',
   'sync.cancel': 'Annulla',

@@ -1,9 +1,10 @@
 import * as fs from 'fs';
-import { hasDrift, isUpdateSuppressedByIgnore } from '../../../utils/version.js';
+import { packageHasDrift, isUpdateSuppressedByIgnore } from '../../../utils/version.js';
 import { discoverDepFiles } from '../../../modules/depFileDiscovery.js';
 import type { ScannedPackage, WorkspaceScanResult } from '../../../modules/packageScanner.js';
 import type { VersionCheckResult } from '../../../services/versionChecker.js';
 import type { ScanStats } from '../../../ui/webviewPanel.js';
+import type { PinnedPackageEntry } from '../../../services/pinnedPackages.js';
 import type * as vscode from 'vscode';
 
 function normalizePackageName(name: string): string {
@@ -55,16 +56,15 @@ export function mergeWorkspaceScans(results: WorkspaceScanResult[]): {
 
 export function applyDriftStatus(
   scanned: ScannedPackage[],
-  checkResults: VersionCheckResult[]
+  checkResults: VersionCheckResult[],
+  pinnedPackages?: Map<string, PinnedPackageEntry>
 ): void {
   const scannedMap = new Map(scanned.map(p => [p.name.toLowerCase(), p]));
   for (const r of checkResults) {
     const pkg = scannedMap.get(r.packageName.toLowerCase());
-    if (
-      !pkg?.specifiedVersion ||
-      !pkg.installedVersion ||
-      !hasDrift(pkg.specifiedVersion, pkg.installedVersion)
-    ) {
+    const pinnedVersion = pinnedPackages?.get(normalizePackageName(r.packageName))?.version
+      ?? (pkg ? pinnedPackages?.get(normalizePackageName(pkg.name))?.version : undefined);
+    if (!packageHasDrift(pkg?.specifiedVersion, pkg?.installedVersion, pinnedVersion)) {
       continue;
     }
     // Preserve update-available / conflict-blocked; only promote up-to-date → drift

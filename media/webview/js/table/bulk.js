@@ -22,12 +22,7 @@ window.updateBulkBar = function () {
 
     const installsCount = selectedList.filter(p => p.status === 'not-installed').length;
     const updatesCount = selectedList.filter(p => p.status === 'update-available' && !p.updateBlockedByConflict).length;
-    const syncsCount = selectedList.filter(p => {
-      if (p.specifiedVersion && p.installedVersion) {
-        return window.hasDrift(p.specifiedVersion, p.installedVersion);
-      }
-      return false;
-    }).length;
+    const syncsCount = selectedList.filter(p => window.packageHasDrift?.(p)).length;
 
     if (elBulkInstall) {
       if (installsCount > 0) {

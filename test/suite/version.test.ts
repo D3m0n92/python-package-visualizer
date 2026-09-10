@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import {
   hasDrift,
+  packageHasDrift,
   versionsEquivalent,
   extractExactPinnedVersion,
   isExactPin,
@@ -77,5 +78,22 @@ suite('version utils', () => {
   test('extractPinnedVersion still reads first version from ranges (install hint)', () => {
     assert.strictEqual(extractPinnedVersion('>=2.0,<3.0'), '2.0');
     assert.strictEqual(extractPinnedVersion('==1.2.3'), '1.2.3');
+  });
+
+  test('packageHasDrift uses user pin over the file specifier', () => {
+    assert.strictEqual(packageHasDrift('>=2.0', '2.30.0', '2.31.0'), true);
+    assert.strictEqual(packageHasDrift('==2.31.0', '2.30.0', '2.31.0'), true);
+    assert.strictEqual(packageHasDrift('>=2.0', '2.31.0', '2.31.0'), false);
+    assert.strictEqual(packageHasDrift('>=2.0', '2.31', '2.31.0'), false);
+    assert.strictEqual(packageHasDrift('>=2.0', undefined, '2.31.0'), true);
+    assert.strictEqual(packageHasDrift('>=2.0', '2.30.0', ''), false);
+    assert.strictEqual(packageHasDrift('>=2.0', '2.30.0', '  '), false);
+  });
+
+  test('packageHasDrift keeps unpinned file-vs-installed guards', () => {
+    assert.strictEqual(packageHasDrift('>=2.0', '2.30.0'), false);
+    assert.strictEqual(packageHasDrift('==2.31.0', '2.30.0'), true);
+    assert.strictEqual(packageHasDrift('==2.31.0', undefined), false);
+    assert.strictEqual(packageHasDrift(undefined, '2.30.0'), false);
   });
 });
