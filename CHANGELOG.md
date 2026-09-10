@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.2] — 2026-09-10
+
+### Fixed
+
+- Align and out-of-sync drift now respect user-pinned versions, not only exact `==` lines in dependency files
+
+### Changed
+
+- Bulk Align restores pinned packages to their chosen pin instead of rewriting to the installed version
+- Pin-aware drift tags, tooltips, banners, and confirm dialog copy in the package list
+
 ## [3.3.1] — 2026-09-07
 
 ### Added

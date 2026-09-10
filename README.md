@@ -4,7 +4,7 @@
 
 **Community-maintained fork — dependency manager for Python projects in VS Code & Cursor**
 
-![Version](https://img.shields.io/badge/version-3.3.1-blue?style=flat-square)
+![Version](https://img.shields.io/badge/version-3.3.2-blue?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 ![VS Code](https://img.shields.io/badge/vscode-%5E1.105.0-007ACC?style=flat-square&logo=visualstudiocode)
 ![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?style=flat-square&logo=python)
@@ -231,7 +231,11 @@ Inside the Package Visualizer panel:
 
 > 📋 **Full release history:** [CHANGELOG.md](CHANGELOG.md)
 
-## 🎯 What's New in v3.3.1
+## 🎯 What's New in v3.3.2
+
+- 🎯 **Pin-aware drift & Align** — out-of-sync detection and Align follow your chosen pin, not just `==` in the file; bulk Align restores pinned versions
+
+### v3.3.1
 
 - 📁 **Project Pin/Ignore file** — `.python-package-visualizer.json` at the project root syncs Pinned tags and update holds across machines via git (one-time migrate from editor storage)
 
@@ -302,10 +306,10 @@ You can also pick a requirements file manually from the dashboard or the in-pane
 
 ```bash
 # VS Code
-code --install-extension python-package-visualizer-community-3.3.1.vsix
+code --install-extension python-package-visualizer-community-3.3.2.vsix
 
 # Cursor
-cursor --install-extension python-package-visualizer-community-3.3.1.vsix --force
+cursor --install-extension python-package-visualizer-community-3.3.2.vsix --force
 ```
 
 Or run the full pipeline from the project root:
